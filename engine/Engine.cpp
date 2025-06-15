@@ -221,3 +221,9 @@ dll::FIELD* ENGINE_API dll::FieldFactory(assets mytype, float sx, float sy)
 
 	return ret;
 }
+dll::CREATURE* ENGINE_API dll::CreatureFactory(assets mytype, float sx, float sy, float targ_x, float targ_y)
+{
+
+
+
+}

@@ -9,13 +9,13 @@
 #include <random>
 #include <type_traits>
 
-
 enum class types {
 	evil1 = 0, evil2 = 1, evil3 = 2, evil4 = 3, evil5 = 4, evil6 = 5,
-	hero = 7, axe = 8, evil1 = 9
+	hero = 7, axe = 8, fire = 9
 };
 enum class assets { platform1 = 0, platform2 = 1, platform3 = 2, potion = 3, gold = 4, tree = 5, field = 6 };
 enum class dirs { stop = 0, up = 1, down = 2, left = 3, right = 4 };
+enum class states { stop = 0, move = 1, attack = 2, gather = 3 };
 
 constexpr float scr_width{ 800.0f };
 constexpr float scr_height{ 750.0f };
@@ -197,8 +197,48 @@ namespace dll
 		friend FIELD* ENGINE_API FieldFactory(assets mytype, float sx, float sy);
 	};
 
+	class ENGINE_API CREATURE :public PROTON
+	{
+		private:
 
+			float move_sx{ 0 };
+			float move_sy{ 0 };
+			float move_ex{ 0 };
+			float move_ey{ 0 };
 
+			float slope{ 0 };
+			float intercept{ 0 };
+
+			int frame{ 0 };
+			int max_frames{ 0 };
+			int frame_delay{ 0 };
+
+			int speed = 0.5f;
+
+			float sight_limit{ 0 };
+			int attack_delay{ 0 };
+			
+			void SetPathInfo(float to_x, float to_y);
+
+			CREATURE(types _type, float _sx, float _sy, float _targ_x, float _targ_y);
+
+		public:
+			bool jump{ false };
+			int lifes = 0;
+
+			virtual ~CREATURE() {};
+
+			int GetFrame() const;
+	
+			bool Contact(FIELD& what);
+
+			bool Move();
+			bool Move(float targ_x, float targ_y);
+
+			states Dispatcher(BAG<FPOINT>& creatures, BAG<FIELD>& objects);
+
+			friend ENGINE_API CREATURE* CreatureFactory(assets mytype, float sx, float sy, float targ_x, float targ_y);
+	};
 
 	// FUNCTIONS DECLARATION *******************************
 
@@ -253,8 +293,6 @@ namespace dll
 		return true;
 	}
 
-
 	FIELD* ENGINE_API FieldFactory(assets mytype, float sx, float sy);
-
-
+	CREATURE* ENGINE_API CreatureFactory(assets mytype, float sx, float sy, float targ_x = 0, float targ_y = 0);
 }
