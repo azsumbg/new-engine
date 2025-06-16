@@ -11,11 +11,12 @@
 
 enum class types {
 	evil1 = 0, evil2 = 1, evil3 = 2, evil4 = 3, evil5 = 4, evil6 = 5,
-	hero = 7, axe = 8, fire = 9
+	hero = 6, axe = 7, fire = 8
 };
 enum class assets { platform1 = 0, platform2 = 1, platform3 = 2, potion = 3, gold = 4, tree = 5, field = 6 };
-enum class dirs { stop = 0, up = 1, down = 2, left = 3, right = 4 };
-enum class states { stop = 0, move = 1, attack = 2, gather = 3 };
+enum class dirs { stop = 0, up = 1, down = 2, left = 3, right = 4, up_left = 5, up_right = 6,
+	down_left = 7, down_right = 8 };
+enum class states { stop = 0, move = 1, attack = 2, gather = 3, fall = 4 };
 
 constexpr float scr_width{ 800.0f };
 constexpr float scr_height{ 750.0f };
@@ -162,6 +163,9 @@ namespace dll
 		FPOINT end{};
 		FPOINT center{};
 
+		float x_radius{ 0 };
+		float y_radius{ 0 };
+
 		PROTON();
 		PROTON(FPOINT start_point, float width, float height);
 		PROTON(float sx, float sy, float width, float height);
@@ -200,6 +204,8 @@ namespace dll
 	class ENGINE_API CREATURE :public PROTON
 	{
 		private:
+			bool hor_line{ false };
+			bool vert_line{ false };
 
 			float move_sx{ 0 };
 			float move_sy{ 0 };
@@ -223,19 +229,23 @@ namespace dll
 			CREATURE(types _type, float _sx, float _sy, float _targ_x, float _targ_y);
 
 		public:
+			types type;
+			dirs dir = dirs::stop;
 			bool jump{ false };
 			int lifes = 0;
 
 			virtual ~CREATURE() {};
 
-			int GetFrame() const;
+			int GetFrame();
 	
-			bool Contact(FIELD& what);
+			bool Contact(FIELD& what, dirs& where);
 
 			bool Move();
 			bool Move(float targ_x, float targ_y);
 
 			states Dispatcher(BAG<FPOINT>& creatures, BAG<FIELD>& objects);
+
+			void Release();
 
 			friend ENGINE_API CREATURE* CreatureFactory(assets mytype, float sx, float sy, float targ_x, float targ_y);
 	};
