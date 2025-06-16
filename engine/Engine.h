@@ -223,7 +223,10 @@ namespace dll
 
 			float sight_limit{ 0 };
 			int attack_delay{ 0 };
-			
+
+			bool jump_start = false;
+			bool jump_up = false;
+
 			void SetPathInfo(float to_x, float to_y);
 
 			CREATURE(types _type, float _sx, float _sy, float _targ_x, float _targ_y);
@@ -240,8 +243,8 @@ namespace dll
 	
 			bool Contact(FIELD& what, dirs& where);
 
-			bool Move();
-			bool Move(float targ_x, float targ_y);
+			void Move(float gear);
+			bool Move(float targ_x, float targ_y, float gear);
 
 			states Dispatcher(BAG<FPOINT>& creatures, BAG<FIELD>& objects);
 

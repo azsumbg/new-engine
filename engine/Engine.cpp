@@ -388,8 +388,122 @@ bool dll::CREATURE::Contact(FIELD& what, dirs& where)
 	return false;
 }
 
-bool Move();
-bool Move(float targ_x, float targ_y);
+void dll::CREATURE::Move(float gear)
+{
+	float my_speed = speed + gear / 5;
+
+	if (type == types::hero)
+	{
+		if (!jump)
+		{
+			switch (dir)
+			{
+			case dirs::left:
+				if (start.x - my_speed >= 0)
+				{
+					start.x -= my_speed;
+					SetEdges();
+				}
+				break;
+
+			case dirs::right:
+				if (end.x + my_speed <= scr_width)
+				{
+					start.x += my_speed;
+					SetEdges();
+				}
+				break;
+			}
+		}
+		else
+		{
+			if (!jump_start)
+			{
+				jump_start = true;
+				jump_up = true;
+				if (dir == dirs::right)SetPathInfo(start.x - 100.0f, start.y - 150.0f);
+				else SetPathInfo(start.x + 100.0f, start.y - 150.0f);
+			}
+			else
+			{
+				if (jump_up)
+				{
+					if (dir == dirs::left)start.x -= my_speed;
+					else start.x += my_speed;
+
+					start.y = start.x * slope + intercept;
+					SetEdges();
+
+					if (center.y <= move_ey)
+					{
+						jump_up = false;
+						if (dir == dirs::right)SetPathInfo(start.x - 100.0f, start.y + 150.0f);
+						else SetPathInfo(start.x + 100.0f, start.y + 150.0f);
+					}
+				}
+				else
+				{
+					if (dir == dirs::left)start.x -= my_speed;
+					else start.x += my_speed;
+
+					start.y = start.x * slope + intercept;
+					SetEdges();
+
+					if (end.y >= move_ey)
+					{
+						start.y = end.y - _height;
+						SetEdges();
+						jump_start = false;
+						jump_up = false;
+						jump = false;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		switch (dir)
+		{
+		case dirs::left:
+			if (start.x - my_speed >= 0)
+			{
+				start.x -= my_speed;
+				SetEdges();
+			}
+			else dir = dirs::right;
+			break;
+
+		case dirs::right:
+			if (end.x + my_speed <= scr_width)
+			{
+				start.x += my_speed;
+				SetEdges();
+			}
+			else dir = dirs::left;
+			break;
+
+		case dirs::up:
+			if (start.y - my_speed >= sky)
+			{
+				start.y -= my_speed;
+				SetEdges();
+			}
+			else dir = dirs::down;
+			break;
+
+		case dirs::down:
+			if (end.y + my_speed <= ground)
+			{
+				start.y += my_speed;
+				SetEdges();
+			}
+			else dir = dirs::up;
+			break;
+		}
+	}
+}
+bool Move(float targ_x, float targ_y, float gear);
 
 states Dispatcher(BAG<FPOINT>& creatures, BAG<FIELD>& objects);
 
