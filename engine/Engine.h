@@ -250,7 +250,7 @@ namespace dll
 
 			void Release();
 
-			friend ENGINE_API CREATURE* CreatureFactory(assets mytype, float sx, float sy, float targ_x, float targ_y);
+			friend ENGINE_API CREATURE* CreatureFactory(types mytype, float sx, float sy, float targ_x, float targ_y);
 	};
 
 	// FUNCTIONS DECLARATION *******************************
@@ -306,6 +306,9 @@ namespace dll
 		return true;
 	}
 
+	typedef FIELD* Asset;
+	typedef CREATURE* Creature;
+
 	FIELD* ENGINE_API FieldFactory(assets mytype, float sx, float sy);
-	CREATURE* ENGINE_API CreatureFactory(assets mytype, float sx, float sy, float targ_x = 0, float targ_y = 0);
+	CREATURE* ENGINE_API CreatureFactory(types mytype, float sx, float sy, float targ_x = 0, float targ_y = 0);
 }
