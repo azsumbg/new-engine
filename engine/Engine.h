@@ -244,7 +244,7 @@ namespace dll
 			bool Contact(FIELD& what, dirs& where);
 
 			void Move(float gear);
-			bool Move(float targ_x, float targ_y, float gear);
+			bool Move(float gear, float targ_x, float targ_y);
 
 			states Dispatcher(BAG<FPOINT>& creatures, BAG<FIELD>& objects);
 

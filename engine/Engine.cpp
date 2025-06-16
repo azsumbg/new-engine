@@ -503,9 +503,80 @@ void dll::CREATURE::Move(float gear)
 		}
 	}
 }
-bool Move(float targ_x, float targ_y, float gear);
+bool dll::CREATURE::Move(float gear, float targ_x, float targ_y) // IF targ_x == 0 && targ_y == 0 no SetPathInfo() !!!!!
+{
+	float my_speed = gear / 5 + speed;
 
-states Dispatcher(BAG<FPOINT>& creatures, BAG<FIELD>& objects);
+	if (type == types::hero)return false;
+
+	if (targ_x != 0 && targ_y != 0)SetPathInfo(targ_x, targ_y);
+
+	if (hor_line)
+	{
+		if (move_ex > move_sx)
+		{
+			if (start.x + my_speed <= scr_width * 2)
+			{
+				start.x += my_speed;
+				SetEdges();
+				return true;
+			}
+			else return false;
+		}
+		else if (move_ex < move_sx)
+		{
+			if (end.x - my_speed >= -scr_width)
+			{
+				start.x -= my_speed;
+				SetEdges();
+				return true;
+			}
+			else return false;
+		}
+		else return false;
+	}
+	if (vert_line)
+	{
+		if (move_ey > move_sy)
+		{
+			if (start.y <= ground)
+			{
+				start.y += my_speed;
+				SetEdges();
+				return true;
+			}
+			else return false;
+		}
+		else if (move_ey < move_sy)
+		{
+			if (end.y - my_speed >= -scr_width)
+			{
+				start.y -= my_speed;
+				SetEdges();
+				return true;
+			}
+			else return false;
+		}
+		else return false;
+	}
+
+	if (move_ex < move_sx)start.x -= my_speed;
+	else if (move_ex > move_sx)start.x += my_speed;
+
+	start.y = start.x * slope + intercept;
+	SetEdges();
+
+	if (start.x >= scr_width * 2 || end.x <= -scr_width || start.y >= ground || end.y <= sky)return false;
+
+	return true;
+}
+
+states dll::CREATURE::Dispatcher(BAG<FPOINT>& creatures, BAG<FIELD>& objects)
+{
+
+
+
+}
 
 // FUNCTIONS DEFINITION *******************************
 
