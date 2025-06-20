@@ -571,11 +571,71 @@ bool dll::CREATURE::Move(float gear, float targ_x, float targ_y) // IF targ_x ==
 	return true;
 }
 
-states dll::CREATURE::Dispatcher(BAG<FPOINT>& creatures, BAG<FIELD>& objects)
+states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 {
+	if (type == types::hero)return states::stop;
+
+	BAG<FPOINT> obj_centers(objects.size());
+
+	if (!objects.empty())
+		for (int i = 0; i < objects.size(); i++)obj_centers.push_back(objects[i].center);
+	
+	dll::Sort(obj_centers, center);
+
+	switch (state)
+	{
+	case states::stop:
+		if (type != types::evil2 && type != types::evil3) // FLYERS
+		{
+			dirs contact_dir = dirs::stop;
+
+			if (!objects.empty())
+			{
+				for (int i = 0; i < objects.size(); ++i)
+				{
+					if (Contact(objects[i], contact_dir))
+					{
+						if (objects[i].type == assets::platform1 || objects[i].type == assets::platform2 ||
+							objects[i].type == assets::platform3)
+						{
+							if (contact_dir == dirs::down && contact_dir == dirs::down_left && contact_dir == dirs::down_right)
+							{
+								start.y = objects[i].start.y - _height;
+								SetEdges();
+								state = states::move;
+								break;
+							}
+						}
+						else if (end.y >= ground)
+						{
+							start.y = ground - _height;
+							SetEdges();
+							if (dir == dirs::down)
+							{
+								if (objects[i].center.x < center.x)dir = dirs::right;
+								else dir = dirs::left;
+								state = states::move;
+								break;
+							}
+							break;
+						}
+					}
+				}
+			}
+
+			if (end.y >= ground)
+			{
+				start.y = ground - _height;
+				SetEdges();
+				state = states::move;
+				if (dir == dirs::down)dir = dirs::left;
+			} // ON THE GROUND
+		}
+		break;
 
 
 
+	}
 }
 
 // FUNCTIONS DEFINITION *******************************

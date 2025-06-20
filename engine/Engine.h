@@ -16,7 +16,7 @@ enum class types {
 enum class assets { platform1 = 0, platform2 = 1, platform3 = 2, potion = 3, gold = 4, tree = 5, field = 6 };
 enum class dirs { stop = 0, up = 1, down = 2, left = 3, right = 4, up_left = 5, up_right = 6,
 	down_left = 7, down_right = 8 };
-enum class states { stop = 0, move = 1, attack = 2, gather = 3, fall = 4 };
+enum class states { stop = 0, move = 1, attack = 2, gather = 3, fall = 4, melee = 5 };
 
 constexpr float scr_width{ 800.0f };
 constexpr float scr_height{ 750.0f };
@@ -65,6 +65,10 @@ namespace dll
 			{
 				if (m_ptr)return true;
 				return false;
+			}
+			bool empty() const
+			{
+				return !(next_pos > 0);
 			}
 
 			void push_back(T element)
@@ -234,6 +238,7 @@ namespace dll
 		public:
 			types type;
 			dirs dir = dirs::stop;
+			states state = states::stop;
 			bool jump{ false };
 			int lifes = 0;
 
@@ -246,7 +251,7 @@ namespace dll
 			void Move(float gear);
 			bool Move(float gear, float targ_x, float targ_y);
 
-			states Dispatcher(BAG<FPOINT>& creatures, BAG<FIELD>& objects);
+			states Dispatcher(FPOINT hero_point, BAG<FIELD>& objects);
 
 			void Release();
 
