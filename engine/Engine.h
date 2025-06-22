@@ -11,12 +11,12 @@
 
 enum class types {
 	evil1 = 0, evil2 = 1, evil3 = 2, evil4 = 3, evil5 = 4, evil6 = 5,
-	hero = 6, axe = 7, fire = 8
+	hero = 6, axe = 7, fire = 8, no_type = 9
 };
-enum class assets { platform1 = 0, platform2 = 1, platform3 = 2, potion = 3, gold = 4, tree = 5, field = 6 };
+enum class assets { platform1 = 0, platform2 = 1, platform3 = 2, potion = 3, gold = 4, tree = 5, field = 6, no_type = 7 };
 enum class dirs { stop = 0, up = 1, down = 2, left = 3, right = 4, up_left = 5, up_right = 6,
 	down_left = 7, down_right = 8 };
-enum class states { stop = 0, move = 1, attack = 2, gather = 3, fall = 4, melee = 5 };
+enum class states { stop = 0, move = 1, attack = 2, gather = 3, fall = 4, melee = 5, attack_finished = 6 };
 
 constexpr float scr_width{ 800.0f };
 constexpr float scr_height{ 750.0f };
@@ -87,8 +87,11 @@ namespace dll
 					{
 						++max_size;
 						m_ptr = reinterpret_cast<T*>(realloc(m_ptr, max_size * sizeof(T)));
-						m_ptr[next_pos] = element;
-						++next_pos;
+						if (m_ptr)
+						{
+							m_ptr[next_pos] = element;
+							++next_pos;
+						}
 						return;
 					}
 				}
@@ -196,13 +199,14 @@ namespace dll
 		dirs dir{ dirs::left };
 		assets type;
 
+		FIELD();
 
 		virtual ~FIELD() {};
 
 		bool Move(float gear, dirs to_where);
 		void Release();
 
-		friend FIELD* ENGINE_API FieldFactory(assets mytype, float sx, float sy);
+		friend ENGINE_API FIELD* FieldFactory(assets mytype, float sx, float sy);
 	};
 
 	class ENGINE_API CREATURE :public PROTON
@@ -223,10 +227,11 @@ namespace dll
 			int max_frames{ 0 };
 			int frame_delay{ 0 };
 
-			int speed = 0.5f;
+			float speed = 0.5f;
 
 			float sight_limit{ 0 };
 			int attack_delay{ 0 };
+			int max_attack_delay{ 0 };
 
 			bool jump_start = false;
 			bool jump_up = false;
@@ -314,6 +319,6 @@ namespace dll
 	typedef FIELD* Asset;
 	typedef CREATURE* Creature;
 
-	FIELD* ENGINE_API FieldFactory(assets mytype, float sx, float sy);
-	CREATURE* ENGINE_API CreatureFactory(types mytype, float sx, float sy, float targ_x = 0, float targ_y = 0);
+	ENGINE_API FIELD* FieldFactory(assets mytype, float sx, float sy);
+	ENGINE_API CREATURE* CreatureFactory(types mytype, float sx, float sy, float targ_x = 0, float targ_y = 0);
 }

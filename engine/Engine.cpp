@@ -153,7 +153,12 @@ dll::FIELD::FIELD(assets _type, float _sx, float _sy) :PROTON{ _sx, _sy, 1.0f, 1
 		break;
 	}
 }
-	
+dll::FIELD::FIELD() :PROTON(0, 0, 0, 0)
+{
+	dir = dirs::stop;
+	type = assets::no_type;
+}
+
 bool dll::FIELD::Move(float gear, dirs to_where)
 {
 	float my_speed = speed + gear / 5.0f;
@@ -295,6 +300,8 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 		frame_delay = 3;
 		break;
 	}
+
+	max_attack_delay = attack_delay;
 }
 
 int dll::CREATURE::GetFrame() 
@@ -587,6 +594,8 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 	case states::stop:
 		if (type != types::evil2 && type != types::evil3) // FLYERS
 		{
+			state = states::fall;
+
 			dirs contact_dir = dirs::stop;
 
 			if (!objects.empty())
@@ -598,7 +607,7 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 						if (objects[i].type == assets::platform1 || objects[i].type == assets::platform2 ||
 							objects[i].type == assets::platform3)
 						{
-							if (contact_dir == dirs::down && contact_dir == dirs::down_left && contact_dir == dirs::down_right)
+							if (contact_dir == dirs::down || contact_dir == dirs::down_left || contact_dir == dirs::down_right)
 							{
 								start.y = objects[i].start.y - _height;
 								SetEdges();
@@ -630,12 +639,121 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 				state = states::move;
 				if (dir == dirs::down)dir = dirs::left;
 			} // ON THE GROUND
+
+			if (hero_point.x >= start.x && hero_point.x <= end.x && hero_point.y >= start.y && hero_point.y <= end.y)
+				state = states::melee;
 		}
 		break;
 
+	case states::move:
+		if (type != types::evil2 && type != types::evil3)
+		{
+			state = states::fall;
 
+			dirs contact_dir = dirs::stop;
 
+			if (!objects.empty())
+			{
+				for (int i = 0; i < objects.size(); ++i)
+				{
+					if (Contact(objects[i], contact_dir))
+					{
+						if (objects[i].type == assets::platform1 || objects[i].type == assets::platform2 ||
+							objects[i].type == assets::platform3)
+						{
+							if (contact_dir == dirs::down || contact_dir == dirs::down_left || contact_dir == dirs::down_right)
+							{
+								start.y = objects[i].start.y - _height;
+								SetEdges();
+								state = states::move;
+								break;
+							}
+						}
+						else if (end.y >= ground)
+						{
+							start.y = ground - _height;
+							SetEdges();
+							if (dir == dirs::down)
+							{
+								if (objects[i].center.x < center.x)dir = dirs::right;
+								else dir = dirs::left;
+								state = states::move;
+								break;
+							}
+							break;
+						}
+					}
+				}
+			}
+
+			if (end.y >= ground)
+			{
+				start.y = ground - _height;
+				SetEdges();
+				state = states::move;
+				if (dir == dirs::down)dir = dirs::left;
+			} // ON THE GROUND
+
+			if (((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
+				|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit) || (hero_point.x >= start.x
+					&& hero_point.x >= end.x)) &&
+				((hero_point.y > end.y && hero_point.y - end.y <= sight_limit)
+					|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit)))state = states::attack;
+			
+			if (hero_point.x >= start.x && hero_point.x <= end.x && hero_point.y >= start.y && hero_point.y <= end.y)
+				state = states::melee;
+		}
+		else
+		{
+			state = states::move;
+
+			dirs contact_dir = dirs::stop;
+
+			if (((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
+				|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit) || (hero_point.x >= start.x
+					&& hero_point.x >= end.x)) &&
+				((hero_point.y > end.y && hero_point.y - end.y <= sight_limit)
+					|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit)))state = states::attack;
+
+			if (!objects.empty())
+			{
+				for (int i = 0; i < objects.size(); ++i)
+				{
+					if (Contact(objects[i], contact_dir) || end.y >= ground)
+					{
+						state = states::stop;
+						break;
+					}
+				}
+			}
+
+			if (end.y >= ground)state = states::stop;
+
+			if (hero_point.x >= start.x && hero_point.x <= end.x && hero_point.y >= start.y && hero_point.y <= end.y)
+				state = states::melee;
+		}
+		break;
+		
+	case states::attack:
+		--attack_delay;
+		if (attack_delay <= 0)
+		{
+			attack_delay = max_attack_delay;
+			state = states::attack_finished;
+		}
+		break;
+
+	case states::melee:
+		--attack_delay;
+		if (attack_delay <= 0)
+		{
+			attack_delay = max_attack_delay;
+			state = states::attack_finished;
+		}
+		break;
 	}
+
+	return state;
 }
 
 // FUNCTIONS DEFINITION *******************************
@@ -679,7 +797,7 @@ bool dll::Sort(dll::BAG<FPOINT>& objects, FPOINT target)
 	return false;
 }
 
-dll::FIELD* ENGINE_API dll::FieldFactory(assets mytype, float sx, float sy)
+ENGINE_API dll::FIELD*  dll::FieldFactory(assets mytype, float sx, float sy)
 {
 	FIELD* ret{ nullptr };
 
@@ -687,7 +805,7 @@ dll::FIELD* ENGINE_API dll::FieldFactory(assets mytype, float sx, float sy)
 
 	return ret;
 }
-dll::CREATURE* ENGINE_API dll::CreatureFactory(types mytype, float sx, float sy, float targ_x, float targ_y)
+ENGINE_API dll::CREATURE* dll::CreatureFactory(types mytype, float sx, float sy, float targ_x, float targ_y)
 {
 	CREATURE* ret{ nullptr };
 	ret = new CREATURE(mytype, sx, sy, targ_x, targ_y);
