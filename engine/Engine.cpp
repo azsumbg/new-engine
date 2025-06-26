@@ -163,6 +163,8 @@ bool dll::FIELD::Move(float gear, dirs to_where)
 {
 	float my_speed = speed + gear / 5.0f;
 
+	dir = to_where;
+
 	if (dir == dirs::left)
 	{
 		start.x -= my_speed;
