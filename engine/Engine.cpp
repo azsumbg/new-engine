@@ -449,7 +449,11 @@ void dll::CREATURE::Move(float gear)
 					}
 					else
 					{
-						if (end.x + my_speed <= scr_width)start.x += my_speed;
+						if (end.x + my_speed <= scr_width)
+						{
+							start.x += my_speed;
+							start.y = start.x * slope + intercept;
+						}
 						else start.y -= my_speed;
 					}
 
@@ -475,7 +479,11 @@ void dll::CREATURE::Move(float gear)
 					}
 					else
 					{
-						if (end.x + my_speed <= scr_width)start.x += my_speed;
+						if (end.x + my_speed <= scr_width)
+						{
+							start.x += my_speed;
+							start.y = start.x * slope + intercept;
+						}
 						else start.y += my_speed;
 					}
 
