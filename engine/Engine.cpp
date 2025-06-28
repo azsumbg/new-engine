@@ -202,8 +202,8 @@ void dll::CREATURE::SetPathInfo(float to_x, float to_y)
 	hor_line = false;
 	vert_line = false;
 
-	if (move_sx == move_ex || (move_ex > start.x && move_ex < end.x) || (move_ex < start.x && move_ex >= start.x - _width)
-		|| (move_ex >= end.x && move_ex <= end.x + _width))
+	if (move_sx == move_ex || (move_ex > start.x && move_ex < end.x) || (move_ex < start.x && move_ex > start.x - x_radius)
+		|| (move_ex > end.x && move_ex < end.x + x_radius))
 	{
 		vert_line = true;
 		return;
@@ -229,7 +229,7 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 		max_frames = 4;
 		frame_delay = 16;
 		lifes = 100;
-		speed = 1.0f;
+		speed = 0.8f;
 		break;
 
 	case types::evil1:
@@ -430,8 +430,8 @@ void dll::CREATURE::Move(float gear)
 			{
 				jump_start = true;
 				jump_up = true;
-				if (dir == dirs::right)SetPathInfo(start.x - 100.0f, start.y - 150.0f);
-				else SetPathInfo(start.x + 100.0f, start.y - 150.0f);
+				if (dir == dirs::right)SetPathInfo(start.x + 100.0f, start.y - 150.0f);
+				else SetPathInfo(start.x - 100.0f, start.y - 150.0f);
 			}
 			else
 			{
@@ -443,11 +443,11 @@ void dll::CREATURE::Move(float gear)
 					start.y = start.x * slope + intercept;
 					SetEdges();
 
-					if (center.y <= move_ey)
+					if (start.y <= move_ey)
 					{
 						jump_up = false;
-						if (dir == dirs::right)SetPathInfo(start.x - 100.0f, start.y + 150.0f);
-						else SetPathInfo(start.x + 100.0f, start.y + 150.0f);
+						if (dir == dirs::right)SetPathInfo(start.x + 100.0f, start.y + 150.0f);
+						else SetPathInfo(start.x - 100.0f, start.y + 150.0f);
 					}
 				}
 				else
@@ -458,10 +458,8 @@ void dll::CREATURE::Move(float gear)
 					start.y = start.x * slope + intercept;
 					SetEdges();
 
-					if (end.y >= move_ey)
+					if (start.y >= move_ey)
 					{
-						start.y = end.y - _height;
-						SetEdges();
 						jump_start = false;
 						jump_up = false;
 						jump = false;
