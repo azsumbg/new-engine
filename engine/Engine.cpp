@@ -229,7 +229,7 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 		max_frames = 4;
 		frame_delay = 16;
 		lifes = 100;
-		speed = 0.8f;
+		speed = 0.2f;
 		break;
 
 	case types::evil1:
@@ -437,10 +437,22 @@ void dll::CREATURE::Move(float gear)
 			{
 				if (jump_up)
 				{
-					if (dir == dirs::left)start.x -= my_speed;
-					else start.x += my_speed;
+					
+					if (dir == dirs::left)
+					{
+						if (start.x - my_speed >= 0)
+						{
+							start.x -= my_speed;
+							start.y = start.x * slope + intercept;
+						}
+						else start.y -= my_speed;
+					}
+					else
+					{
+						if (end.x + my_speed <= scr_width)start.x += my_speed;
+						else start.y -= my_speed;
+					}
 
-					start.y = start.x * slope + intercept;
 					SetEdges();
 
 					if (start.y <= move_ey)
@@ -452,10 +464,21 @@ void dll::CREATURE::Move(float gear)
 				}
 				else
 				{
-					if (dir == dirs::left)start.x -= my_speed;
-					else start.x += my_speed;
+					if (dir == dirs::left)
+					{
+						if (start.x - my_speed >= 0)
+						{
+							start.x -= my_speed;
+							start.y = start.x * slope + intercept;
+						}
+						else start.y += my_speed;
+					}
+					else
+					{
+						if (end.x + my_speed <= scr_width)start.x += my_speed;
+						else start.y += my_speed;
+					}
 
-					start.y = start.x * slope + intercept;
 					SetEdges();
 
 					if (start.y >= move_ey)
