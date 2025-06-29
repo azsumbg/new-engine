@@ -158,7 +158,6 @@ dll::FIELD::FIELD() :PROTON(0, 0, 0, 0)
 	dir = dirs::stop;
 	type = assets::no_type;
 }
-
 bool dll::FIELD::Move(float gear, dirs to_where)
 {
 	float my_speed = speed + gear / 5.0f;
@@ -294,10 +293,12 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 
 	case types::axe:
 		NewDims(20.0f, 20.0f);
+		SetPathInfo(_targ_x, _targ_y);
 		break;
 
 	case types::fire:
 		NewDims(20.0f, 20.0f);
+		SetPathInfo(_targ_x, _targ_y);
 		max_frames = 16;
 		frame_delay = 3;
 		break;
@@ -430,8 +431,8 @@ void dll::CREATURE::Move(float gear)
 			{
 				jump_start = true;
 				jump_up = true;
-				if (dir == dirs::right)SetPathInfo(start.x + 100.0f, start.y - 150.0f);
-				else SetPathInfo(start.x - 100.0f, start.y - 150.0f);
+				if (dir == dirs::right)SetPathInfo(start.x + 70.0f, start.y - 100.0f);
+				else SetPathInfo(start.x - 70.0f, start.y - 100.0f);
 			}
 			else
 			{
@@ -462,8 +463,8 @@ void dll::CREATURE::Move(float gear)
 					if (start.y <= move_ey)
 					{
 						jump_up = false;
-						if (dir == dirs::right)SetPathInfo(start.x + 100.0f, start.y + 150.0f);
-						else SetPathInfo(start.x - 100.0f, start.y + 150.0f);
+						if (dir == dirs::right)SetPathInfo(start.x + 70.0f, start.y + 100.0f);
+						else SetPathInfo(start.x - 70.0f, start.y + 100.0f);
 					}
 				}
 				else
@@ -531,12 +532,16 @@ void dll::CREATURE::Move(float gear)
 			break;
 
 		case dirs::down:
-			if (end.y + my_speed <= ground)
+			if (start.y + my_speed <= ground)
 			{
 				start.y += my_speed;
 				SetEdges();
 			}
-			else dir = dirs::up;
+			else
+			{
+				if (center.x >= scr_width / 2)dir = dirs::left;
+				else dir = dirs::right;
+			}
 			break;
 		}
 	}
@@ -587,7 +592,7 @@ bool dll::CREATURE::Move(float gear, float targ_x, float targ_y) // IF targ_x ==
 		}
 		else if (move_ey < move_sy)
 		{
-			if (end.y - my_speed >= -scr_width)
+			if (end.y - my_speed >= sky)
 			{
 				start.y -= my_speed;
 				SetEdges();
@@ -626,6 +631,7 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 		if (type != types::evil2 && type != types::evil3) // FLYERS
 		{
 			state = states::fall;
+			dir = dirs::down;
 
 			dirs contact_dir = dirs::stop;
 
@@ -663,9 +669,9 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 				}
 			}
 
-			if (end.y >= ground)
+			if (start.y >= ground)
 			{
-				start.y = ground - _height;
+				start.y = ground;
 				SetEdges();
 				state = states::move;
 				if (dir == dirs::down)dir = dirs::left;
@@ -680,6 +686,7 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 		if (type != types::evil2 && type != types::evil3)
 		{
 			state = states::fall;
+			dir = dirs::down;
 
 			dirs contact_dir = dirs::stop;
 
@@ -717,9 +724,9 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 				}
 			}
 
-			if (end.y >= ground)
+			if (start.y >= ground)
 			{
-				start.y = ground - _height;
+				start.y = ground;
 				SetEdges();
 				state = states::move;
 				if (dir == dirs::down)dir = dirs::left;
