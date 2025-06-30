@@ -236,7 +236,7 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 		lifes = 80;
 		speed = 1.9f;
 		sight_limit = 200;
-		attack_delay = 120;
+		attack_delay = 320;
 		max_frames = 11;
 		frame_delay = 6;
 		break;
@@ -246,7 +246,7 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 		lifes = 150;
 		speed = 1.5f;
 		sight_limit = 350;
-		attack_delay = 140;
+		attack_delay = 340;
 		max_frames = 28;
 		frame_delay = 2;
 		break;
@@ -256,7 +256,7 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 		lifes = 120;
 		speed = 1.6f;
 		sight_limit = 380;
-		attack_delay = 130;
+		attack_delay = 330;
 		max_frames = 20;
 		frame_delay = 3;
 		break;
@@ -266,7 +266,7 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 		lifes = 200;
 		speed = 1.4f;
 		sight_limit = 150;
-		attack_delay = 160;
+		attack_delay = 360;
 		max_frames = 5;
 		frame_delay = 13;
 		break;
@@ -276,7 +276,7 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 		lifes = 150;
 		speed = 1.6f;
 		sight_limit = 120;
-		attack_delay = 150;
+		attack_delay = 350;
 		max_frames = 16;
 		frame_delay = 3;
 		break;
@@ -286,7 +286,7 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 		lifes = 90;
 		speed = 1.8f;
 		sight_limit = 180;
-		attack_delay = 140;
+		attack_delay = 340;
 		max_frames = 23;
 		frame_delay = 2;
 		break;
@@ -401,6 +401,7 @@ bool dll::CREATURE::Contact(FIELD& what, dirs& where)
 void dll::CREATURE::Move(float gear)
 {
 	float my_speed = speed + gear / 5;
+	dll::RANDIt Randerer;
 
 	if (type == types::hero)
 	{
@@ -508,6 +509,7 @@ void dll::CREATURE::Move(float gear)
 			if (start.x - my_speed >= 0)
 			{
 				start.x -= my_speed;
+				if (Randerer(0, 10) == 6 && end.y + 20.0f <= ground - 150.0f)start.y += 20.0f;
 				SetEdges();
 			}
 			else dir = dirs::right;
@@ -517,6 +519,7 @@ void dll::CREATURE::Move(float gear)
 			if (end.x + my_speed <= scr_width)
 			{
 				start.x += my_speed;
+				if (Randerer(0, 10) == 6 && end.y + 20.0f <= ground - 150.0f)start.y += 20.0f;
 				SetEdges();
 			}
 			else dir = dirs::left;
