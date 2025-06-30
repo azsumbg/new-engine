@@ -234,9 +234,9 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 	case types::evil1:
 		NewDims(80.0f, 29.0f);
 		lifes = 80;
-		speed = 0.9f;
+		speed = 1.9f;
 		sight_limit = 200;
-		attack_delay = 50;
+		attack_delay = 120;
 		max_frames = 11;
 		frame_delay = 6;
 		break;
@@ -244,9 +244,9 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 	case types::evil2:
 		NewDims(90.0f, 92.0f);
 		lifes = 150;
-		speed = 0.5f;
-		sight_limit = 250;
-		attack_delay = 80;
+		speed = 1.5f;
+		sight_limit = 350;
+		attack_delay = 140;
 		max_frames = 28;
 		frame_delay = 2;
 		break;
@@ -254,9 +254,9 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 	case types::evil3:
 		NewDims(85.0f, 85.0f);
 		lifes = 120;
-		speed = 0.6f;
-		sight_limit = 220;
-		attack_delay = 70;
+		speed = 1.6f;
+		sight_limit = 380;
+		attack_delay = 130;
 		max_frames = 20;
 		frame_delay = 3;
 		break;
@@ -264,9 +264,9 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 	case types::evil4:
 		NewDims(90.0f, 102.0f);
 		lifes = 200;
-		speed = 0.4f;
+		speed = 1.4f;
 		sight_limit = 150;
-		attack_delay = 100;
+		attack_delay = 160;
 		max_frames = 5;
 		frame_delay = 13;
 		break;
@@ -274,9 +274,9 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 	case types::evil5:
 		NewDims(100.0f, 88.0f);
 		lifes = 150;
-		speed = 0.6f;
+		speed = 1.6f;
 		sight_limit = 120;
-		attack_delay = 90;
+		attack_delay = 150;
 		max_frames = 16;
 		frame_delay = 3;
 		break;
@@ -284,9 +284,9 @@ dll::CREATURE::CREATURE(types _type, float _sx, float _sy, float _targ_x, float 
 	case types::evil6:
 		NewDims(85.0f, 70.0f);
 		lifes = 90;
-		speed = 0.8f;
+		speed = 1.8f;
 		sight_limit = 180;
-		attack_delay = 40;
+		attack_delay = 140;
 		max_frames = 23;
 		frame_delay = 2;
 		break;
@@ -539,6 +539,8 @@ void dll::CREATURE::Move(float gear)
 			}
 			else
 			{
+				start.y = ground;
+				SetEdges();
 				if (center.x >= scr_width / 2)dir = dirs::left;
 				else dir = dirs::right;
 			}
@@ -635,7 +637,14 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 
 			dirs contact_dir = dirs::stop;
 
-			if (!objects.empty())
+			if (start.y >= ground)
+			{
+				start.y = ground;
+				SetEdges();
+				state = states::move;
+				if (dir == dirs::down)dir = dirs::left;
+			} // ON THE GROUND
+			else if (!objects.empty())
 			{
 				for (int i = 0; i < objects.size(); ++i)
 				{
@@ -652,34 +661,27 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 								break;
 							}
 						}
-						else if (end.y >= ground)
-						{
-							start.y = ground - _height;
-							SetEdges();
-							if (dir == dirs::down)
-							{
-								if (objects[i].center.x < center.x)dir = dirs::right;
-								else dir = dirs::left;
-								state = states::move;
-								break;
-							}
-							break;
-						}
 					}
 				}
 			}
 
-			if (start.y >= ground)
-			{
-				start.y = ground;
-				SetEdges();
-				state = states::move;
-				if (dir == dirs::down)dir = dirs::left;
-			} // ON THE GROUND
+			
+			if (((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
+				|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit) || (hero_point.x >= start.x
+					&& hero_point.x <= end.x)) &&
+				((hero_point.y > end.y && hero_point.y - end.y <= sight_limit)
+					|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit) ||
+					(hero_point.y >= start.y && hero_point.y <= end.y)))state = states::attack;
 
 			if (hero_point.x >= start.x && hero_point.x <= end.x && hero_point.y >= start.y && hero_point.y <= end.y)
 				state = states::melee;
 		}
+		else if (((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
+			|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit) || (hero_point.x >= start.x
+				&& hero_point.x <= end.x)) &&
+			((hero_point.y > end.y && hero_point.y - end.y <= sight_limit)
+				|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit) ||
+				(hero_point.y >= start.y && hero_point.y <= end.y)))state = states::attack;
 		break;
 
 	case states::move:
@@ -690,7 +692,14 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 
 			dirs contact_dir = dirs::stop;
 
-			if (!objects.empty())
+			if (start.y >= ground)
+			{
+				start.y = ground;
+				SetEdges();
+				state = states::move;
+				if (dir == dirs::down)dir = dirs::left;
+			} // ON THE GROUND
+			else if (!objects.empty())
 			{
 				for (int i = 0; i < objects.size(); ++i)
 				{
@@ -707,36 +716,16 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 								break;
 							}
 						}
-						else if (end.y >= ground)
-						{
-							start.y = ground - _height;
-							SetEdges();
-							if (dir == dirs::down)
-							{
-								if (objects[i].center.x < center.x)dir = dirs::right;
-								else dir = dirs::left;
-								state = states::move;
-								break;
-							}
-							break;
-						}
 					}
 				}
 			}
 
-			if (start.y >= ground)
-			{
-				start.y = ground;
-				SetEdges();
-				state = states::move;
-				if (dir == dirs::down)dir = dirs::left;
-			} // ON THE GROUND
-
 			if (((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
 				|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit) || (hero_point.x >= start.x
-					&& hero_point.x >= end.x)) &&
+					&& hero_point.x <= end.x)) &&
 				((hero_point.y > end.y && hero_point.y - end.y <= sight_limit)
-					|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit)))state = states::attack;
+					|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit) ||
+					(hero_point.y >= start.y && hero_point.y <= end.y)))state = states::attack;
 			
 			if (hero_point.x >= start.x && hero_point.x <= end.x && hero_point.y >= start.y && hero_point.y <= end.y)
 				state = states::melee;
@@ -746,12 +735,6 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 			state = states::move;
 
 			dirs contact_dir = dirs::stop;
-
-			if (((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
-				|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit) || (hero_point.x >= start.x
-					&& hero_point.x >= end.x)) &&
-				((hero_point.y > end.y && hero_point.y - end.y <= sight_limit)
-					|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit)))state = states::attack;
 
 			if (!objects.empty())
 			{
@@ -766,6 +749,13 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 			}
 
 			if (end.y >= ground)state = states::stop;
+
+			if (((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
+				|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit) || (hero_point.x >= start.x
+					&& hero_point.x <= end.x)) &&
+				((hero_point.y > end.y && hero_point.y - end.y <= sight_limit)
+					|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit) ||
+					(hero_point.y >= start.y && hero_point.y <= end.y)))state = states::attack;
 
 			if (hero_point.x >= start.x && hero_point.x <= end.x && hero_point.y >= start.y && hero_point.y <= end.y)
 				state = states::melee;
@@ -789,6 +779,40 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 			state = states::attack_finished;
 		}
 		break;
+
+	case states::fall:
+		if (start.y >= ground)
+		{
+			start.y = ground;
+			SetEdges();
+			state = states::move;
+			if (start.x >= scr_width / 2)dir = dirs::left;
+			else dir = dirs::right;
+		} // ON THE GROUND
+		else if (!objects.empty())
+		{
+			dirs contact_dir = dirs::stop;
+
+			for (int i = 0; i < objects.size(); ++i)
+			{
+				if (Contact(objects[i], contact_dir))
+				{
+					if (objects[i].type == assets::platform1 || objects[i].type == assets::platform2 ||
+						objects[i].type == assets::platform3)
+					{
+						if (contact_dir == dirs::down || contact_dir == dirs::down_left || contact_dir == dirs::down_right)
+						{
+							start.y = objects[i].start.y - _height;
+							SetEdges();
+							state = states::move;
+							break;
+						}
+					}
+				}
+			}
+		}
+		break;
+
 	}
 
 	return state;
