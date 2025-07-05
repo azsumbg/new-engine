@@ -555,7 +555,7 @@ void dll::CREATURE::Move(float gear)
 			break;
 
 		case dirs::down:
-			if (start.y <= ground)
+			if (start.y < ground)
 			{
 				start.y += my_speed;
 				SetEdges();
@@ -564,8 +564,6 @@ void dll::CREATURE::Move(float gear)
 			{
 				start.y = ground;
 				SetEdges();
-				if (center.x >= scr_width / 2)dir = dirs::left;
-				else dir = dirs::right;
 				state = states::move;
 			}
 			break;
@@ -635,7 +633,7 @@ bool dll::CREATURE::Move(float gear, float targ_x, float targ_y) // IF targ_x ==
 	start.y = start.x * slope + intercept;
 	SetEdges();
 
-	if (start.x >= scr_width * 2 || end.x <= -scr_width || start.y >= ground || end.y <= sky)return false;
+	if (start.x >= scr_width * 2 || end.x <= -scr_width || start.y >= scr_height || end.y <= sky)return false;
 
 	return true;
 }
@@ -669,19 +667,6 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 				if (dir == dirs::down)dir = dirs::left;
 			} // ON THE GROUND
 
-			if (((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
-				|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit) || (hero_point.x >= start.x
-					&& hero_point.x <= end.x)) &&
-				((hero_point.y > end.y && hero_point.y - end.y <= sight_limit)
-					|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit) ||
-					(hero_point.y >= start.y && hero_point.y <= end.y)))
-
-			{
-				if (hero_point.x < start.x)dir = dirs::left;
-				else dir = dirs::right;
-				state = states::move;
-			}
-			
 			if (!objects.empty())
 			{
 				for (int i = 0; i < objects.size(); ++i)
@@ -701,28 +686,39 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 								else dir = dirs::right;
 								break;
 							}
-							else if (contact_dir == dirs::left || contact_dir == dirs::down_left || contact_dir == dirs::up_left)
-								dir = dirs::right;
-							else if (contact_dir == dirs::right || contact_dir == dirs::down_right || contact_dir == dirs::up_right)
-								dir = dirs::left;
-							state = states::move;
-					
+							else 
+							{
+								state = states::move;
 
+								if (start.y > objects[i].start.y - _height)dir = dirs::up;
+								else
+								{
+									dir = dirs::down;
+									state = states::fall;
+								}
+							}
+							
 							break;
 						}
 					}
 				}
 			}
 
+			if ((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
+				|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit))
+			{
+				if (hero_point.x < start.x)dir = dirs::left;
+				else dir = dirs::right;
+				state = states::move;
+			}
+
+			
 			if (hero_point.x >= start.x && hero_point.x <= end.x && hero_point.y >= start.y && hero_point.y <= end.y)
 				state = states::melee;
 		}
 		else if (((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
 			|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit) || (hero_point.x >= start.x
-				&& hero_point.x <= end.x)) &&
-			((hero_point.y > end.y && hero_point.y - end.y <= sight_limit)
-				|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit) ||
-				(hero_point.y >= start.y && hero_point.y <= end.y)))state = states::attack;
+				&& hero_point.x <= end.x)))state = states::attack;
 		break;
 
 	case states::move:
@@ -742,17 +738,6 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 				else dir = dirs::right;
 			} // ON THE GROUND
 			
-			if (((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
-				|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit) || (hero_point.x >= start.x
-					&& hero_point.x <= end.x)) &&
-				((hero_point.y > end.y && hero_point.y - end.y <= sight_limit)
-					|| (hero_point.y < start.y && start.y - hero_point.y <= sight_limit) ||
-					(hero_point.y >= start.y && hero_point.y <= end.y)))
-			{
-				if (hero_point.x < start.x)dir = dirs::left;
-				else dir = dirs::right;
-			}
-			
 			if (!objects.empty())
 			{
 
@@ -763,6 +748,8 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 						if (objects[i].type == assets::platform1 || objects[i].type == assets::platform2 ||
 							objects[i].type == assets::platform3)
 						{
+							state = states::move;
+
 							if (contact_dir == dirs::down || contact_dir == dirs::down_left || contact_dir == dirs::down_right)
 							{
 								start.y = objects[i].start.y - _height;
@@ -772,13 +759,16 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 								else dir = dirs::right;
 								break;
 							}
-							else if (contact_dir == dirs::left || contact_dir == dirs::down_left || contact_dir == dirs::up_left)
-								dir = dirs::right;
-							else if (contact_dir == dirs::right || contact_dir == dirs::down_right || contact_dir == dirs::up_right)
-								dir = dirs::left;
+							else
+							{
+								if (start.y > objects[i].start.y - _height)dir = dirs::up;
+								else
+								{
+									dir = dirs::down;
+									state = states::fall;
+								}
+							}
 							
-							state = states::move;
-
 							break;
 						}
 
@@ -786,8 +776,20 @@ states dll::CREATURE::Dispatcher(FPOINT hero_point, BAG<FIELD>& objects)
 				}
 			}
 
+			if ((hero_point.x > end.x && hero_point.x - end.x <= sight_limit)
+				|| (hero_point.x < start.x && start.x - hero_point.x <= sight_limit))
+			{
+				if (hero_point.x < start.x)dir = dirs::left;
+				else dir = dirs::right;
+				state = states::move;
+			}
+
+			
 			if (hero_point.x >= start.x && hero_point.x <= end.x && hero_point.y >= start.y && hero_point.y <= end.y)
+			{
 				state = states::melee;
+				dir = dirs::stop;
+			}
 		}
 		else
 		{
